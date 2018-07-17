@@ -12,7 +12,7 @@ public void OnPluginStart()
 public Action TEST1(int client, int args)
 {
 	SQLChain chain = new SQLChain();
-	chain.Select("users").From("bandatabase").Where("clientid").Is("1");
+	chain.Select().From("bandatabase").Where("clientid").Is("1");
 	char s[512]; chain.Reset(); chain.ReadString(s, 512);
 	PrintToServer(s);
 	delete chain;
