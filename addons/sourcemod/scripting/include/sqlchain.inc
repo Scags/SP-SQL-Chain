@@ -3,37 +3,47 @@
 #endif
 #define _sqlchain_included
 
-stock static char g_strSQLChain[2][4096]; 	// Disgusting
+#define MAX_QUERY_APPEND_LEN 		1024		// Oh whale
 
 methodmap SQLChain < DataPack
 {
 	public SQLChain()
 	{
 		DataPack pack = new DataPack();
+		pack.WriteCell(0);
 		pack.WriteString("");
 		return view_as< SQLChain >(pack);
 	}
 
-	public SQLChain Do( char[] keywordstr )	// Private tags please ;-;
+	public SQLChain Do( char[] appended )	// Private tags please ;-;
 	{
 		this.Reset();
-		this.ReadString(g_strSQLChain[0], sizeof(g_strSQLChain[]));
-		Format(g_strSQLChain[0], sizeof(g_strSQLChain[]), "%s %s %s", g_strSQLChain[0], keywordstr, g_strSQLChain[1]);
+		int len = this.ReadCell()+1;
+		int appendlen = strlen(appended)+1;
+		char[] myself = new char[len+appendlen];
+
+		this.ReadString(myself, len);
+		StrCat(myself, len+appendlen, appended);
 		this.Reset(true);
-		this.WriteString(g_strSQLChain[0]);
+		this.WriteCell(strlen(myself));
+		this.WriteString(myself);
+
 		return this;
 	}
 
 	public void Query( Database db, SQLQueryCallback callback, any data = 0, DBPriority prio = DBPrio_Normal )
 	{
 		this.Reset();
-		this.ReadString(g_strSQLChain[0], sizeof(g_strSQLChain[]));
-		db.Query(callback, g_strSQLChain[0], data, prio);
+		int len = this.ReadCell()+1;
+		char[] myself = new char[len];
+		this.ReadString(myself, len);
+		db.Query(callback, myself, data, prio);
 	}
 
 	public void Clear()
 	{
 		this.Reset(true);
+		this.WriteCell(0);
 		this.WriteString("");
 	}
 
@@ -41,1118 +51,1491 @@ methodmap SQLChain < DataPack
 	{
 		SQLChain chain = new SQLChain();
 		this.Reset();
-		this.ReadString(g_strSQLChain[0], sizeof(g_strSQLChain[]));
-		chain.WriteString(g_strSQLChain[0]);
+		int len = this.ReadCell()+1;
+		char[] myself = new char[len];
+		this.ReadString(myself, len);
+		chain.WriteCell(strlen(myself));
+		chain.WriteString(myself);
 		return chain;
 	}
 
 	public SQLChain Add( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ADD");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ADD %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain External( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("EXTERNAL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " EXTERNAL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain All( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ALL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ALL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Fetch( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FETCH");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FETCH %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Alter( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ALTER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ALTER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain File( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FILE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FILE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain And( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("AND");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " AND %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain FillFactor( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FILLFACTOR");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FILLFACTOR %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Any( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ANY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ANY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain For( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FOR");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FOR %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain As( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("AS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " AS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Foreign( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FOREIGN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FOREIGN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Asc( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ASC");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ASC %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain FreeText( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FREETEXT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FREETEXT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Authorization( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("AUTHORIZATION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " AUTHORIZATION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain FreeTextTable( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FREETEXTTABLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FREETEXTTABLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Backup( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BACKUP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BACKUP %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain From( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FROM");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FROM %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Begin( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BEGIN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BEGIN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Full( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FULL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FULL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Between( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BETWEEN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BETWEEN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Function( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("FUNCTION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " FUNCTION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Break( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BREAK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BREAK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Goto( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("GOTO");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " GOTO %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Browse( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BROWSE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BROWSE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Grant( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("GRANT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " GRANT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Bulk( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BULK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BULK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Group( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("GROUP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " GROUP %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain By( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("BY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " BY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Having( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("HAVING");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " HAVING %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Cascade( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CASCADE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CASCADE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain HoldLock( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("HOLDLOCK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " HOLDLOCK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Case( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CASE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CASE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Identity( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("IDENTITY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " IDENTITY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Check( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CHECK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CHECK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain IDentity_Insert( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("IDENTITY_INSERT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " IDENTITY_INSERT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Checkpoint( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CHECKPOINT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CHECKPOINT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain IdentityCol( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("IDENTITYCOL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " IDENTITYCOL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Close( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CLOSE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CLOSE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain If( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("IF");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " IF %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Clustered( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CLUSTERED");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CLUSTERED %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain In( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("IN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " IN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Coalesce( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("COALESCE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " COALESCE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Index( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("INDEX");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " INDEX %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Collate( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("COLLATE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " COLLATE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Inner( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("INNER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " INNER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Column( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("COLUMN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " COLUMN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Insert( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("INSERT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " INSERT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Commit( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("COMMIT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " COMMIT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Intersect( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("INTERSECT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " INTERSECT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Compute( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("COMPUTE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " COMPUTE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Into( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("INTO");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " INTO %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Constraint( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CONSTRAINT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CONSTRAINT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Is( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("IS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " IS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Contains( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CONTAINS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CONTAINS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Join( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("JOIN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " JOIN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain ContainsTable( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CONTAINSTABLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CONTAINSTABLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Key( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("KEY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " KEY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Continue( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CONTINUE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CONTINUE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Kill( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("KILL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " KILL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Convert( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CONVERT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CONVERT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Left( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("LEFT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " LEFT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Create( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CREATE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CREATE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Like( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("LIKE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " LIKE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Cross( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CROSS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CROSS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Lineno( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("LINENO");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " LINENO %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Current( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CURRENT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CURRENT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Load( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("LOAD");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " LOAD %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Current_Date( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CURRENT_DATE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CURRENT_DATE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Merge( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("MERGE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " MERGE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Current_Time( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CURRENT_TIME");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CURRENT_TIME %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain National( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("NATIONAL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " NATIONAL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Current_Timestamp( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CURRENT_TIMESTAMP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CURRENT_TIMESTAMP %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain NoCheck( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("NOCHECK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " NOCHECK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Current_User( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CURRENT_USER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CURRENT_USER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain NonClustered( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("NONCLUSTERED");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " NONCLUSTERED %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Cursor( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("CURSOR");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " CURSOR %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Not( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("NOT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " NOT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Database( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DATABASE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DATABASE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Null( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("NULL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " NULL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Dbcc( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DBCC");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DBCC %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain NullIf( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("NULLIF");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " NULLIF %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Deallocate( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DEALLOCATE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DEALLOCATE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Of( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OF");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OF %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Declare( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DECLARE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DECLARE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Off( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OFF");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OFF %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Default( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DEFAULT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DEFAULT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Offsets( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OFFSETS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OFFSETS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Delete( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DELETE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DELETE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain On( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ON");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ON %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Deny( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DENY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DENY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Open( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OPEN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OPEN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Desc( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DESC");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DESC %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain OpenDataSource( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OPENDATASOURCE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OPENDATASOURCE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Disk( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DISK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DISK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain OpenQuery( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OPENQUERY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OPENQUERY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Distinct( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DISTINCT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DISTINCT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Openrowset( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OPENROWSET");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OPENROWSET %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Distributed( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DISTRIBUTED");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DISTRIBUTED %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Openxml( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OPENXML");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OPENXML %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Double( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DOUBLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DOUBLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Option( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OPTION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OPTION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Drop( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DROP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DROP %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Or( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OR");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OR %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Dump( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("DUMP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " DUMP %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Order( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ORDER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ORDER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Else( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ELSE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ELSE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Outer( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OUTER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OUTER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain End( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("END");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " END %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Over( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("OVER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " OVER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Errlvl( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ERRLVL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ERRLVL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Percent( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PERCENT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PERCENT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Escape( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ESCAPE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ESCAPE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Pivot( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PIVOT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PIVOT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Except( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("EXCEPT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " EXCEPT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Plan( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PLAN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PLAN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Exec( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("EXEC");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " EXEC %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Precision( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PRECISION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PRECISION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Execute( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("EXECUTE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " EXECUTE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Primary( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PRIMARY");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PRIMARY %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Exists( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("EXISTS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " EXISTS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Print( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PRINT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PRINT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Exit( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("EXIT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " EXIT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Proc( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PROC");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PROC %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Procedure( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PROCEDURE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PROCEDURE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Public( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("PUBLIC");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " PUBLIC %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Raiserror( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RAISERROR");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RAISERROR %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Read( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("READ");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " READ %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain ReadText( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("READTEXT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " READTEXT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Reconfigure( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RECONFIGURE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RECONFIGURE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain References( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("REFERENCES");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " REFERENCES %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Replication( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("REPLICATION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " REPLICATION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Restore( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RESTORE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RESTORE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Restrict( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RESTRICT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RESTRICT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Return( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RETURN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RETURN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Revert( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("REVERT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " REVERT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Revoke( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("REVOKE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " REVOKE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Right( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RIGHT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RIGHT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Rollback( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ROLLBACK");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ROLLBACK %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain RowCount( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ROWCOUNT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ROWCOUNT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain RowGuidCol( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("ROWGUIDCOL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " ROWGUIDCOL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Rule( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("RULE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " RULE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Save( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SAVE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SAVE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Schema( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SCHEMA");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SCHEMA %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain SecurityAudit( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SECURITYAUDIT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SECURITYAUDIT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Select( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SELECT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SELECT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain SemanticKeyPhraseTable( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SEMANTICKEYPHRASETABLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SEMANTICKEYPHRASETABLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain SemanticSimilarityDetailsTable( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SEMANTICSIMILARITYDETAILSTABLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SEMANTICSIMILARITYDETAILSTABLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain SemanticSimilarityTable( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SEMANTICSIMILARITYTABLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SEMANTICSIMILARITYTABLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Session_User( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SESSION_USER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SESSION_USER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Set( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SET");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SET %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain SetUser( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SETUSER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SETUSER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Shutdown( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SHUTDOWN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SHUTDOWN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Some( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SOME");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SOME %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Statistics( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("STATISTICS");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " STATISTICS %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain System_User( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("SYSTEM_USER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " SYSTEM_USER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Table( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TABLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TABLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain TableSample( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TABLESAMPLE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TABLESAMPLE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain TextSize( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TEXTSIZE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TEXTSIZE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Then( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("THEN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " THEN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain To( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TO");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TO %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Top( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TOP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TOP %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Tran( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TRAN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TRAN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Transaction( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TRANSACTION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TRANSACTION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Trigger( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TRIGGER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TRIGGER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Truncate( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TRUNCATE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TRUNCATE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Try_Convert( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TRY_CONVERT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TRY_CONVERT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Tsequal( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("TSEQUAL");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " TSEQUAL %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Union( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("UNION");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " UNION %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Unique( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("UNIQUE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " UNIQUE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain UnPivot( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("UNPIVOT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " UNPIVOT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Update( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("UPDATE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " UPDATE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain UpdateText( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("UPDATETEXT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " UPDATETEXT %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Use( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("USE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " USE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain User( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("USER");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " USER %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Values( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("VALUES");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " VALUES %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Varying( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("VARYING");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " VARYING %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain View( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("VIEW");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " VIEW %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain WaitFor( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WAITFOR");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WAITFOR %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain When( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WHEN");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WHEN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain Where( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WHERE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WHERE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain While( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WHILE");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WHILE %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain With( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WITH");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WITH %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain WithinGroup( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WITHIN GROUP");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WITHIN %s", buffer);
+		return this.Do(buffer);
 	}
 
 	public SQLChain WriteText( char[] query = "", any ... )
 	{
-		VFormat(g_strSQLChain[1], sizeof(g_strSQLChain[]), query, 3);
-		return this.Do("WRITETEXT");
+		char buffer[MAX_QUERY_APPEND_LEN];
+		VFormat(buffer, sizeof(buffer), query, 3);
+		Format(buffer, sizeof(buffer), " WRITETEXT %s", buffer);
+		return this.Do(buffer);
 	}
 }
